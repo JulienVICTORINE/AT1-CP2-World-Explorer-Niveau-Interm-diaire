@@ -25,3 +25,12 @@ Développer une application complète permettant la recherche, le tri et le filt
    - Permettre le filtrage des pays par continent/région
 
 <a href="https://zupimages.net/viewer.php?id=25/16/xa3p.png"><img src="https://zupimages.net/up/25/16/xa3p.png" alt="" /></a>
+
+
+# Tri des pays par ordre alphabétique - Ordre croissant
+
+<a href="https://zupimages.net/viewer.php?id=25/16/nfvs.png"><img src="https://zupimages.net/up/25/16/nfvs.png" alt="" /></a>
+
+# Tri des pays par ordre alphabétique - Ordre décroissant
+
+<a href="https://zupimages.net/viewer.php?id=25/16/cka1.png"><img src="https://zupimages.net/up/25/16/cka1.png" alt="" /></a>
