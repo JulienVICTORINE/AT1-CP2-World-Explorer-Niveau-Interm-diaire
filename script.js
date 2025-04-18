@@ -12,14 +12,20 @@ const btnSortNameDesc = document.getElementById("sortNameDesc");
 const btnSortPopAsc = document.getElementById("sortPopAsc");
 const btnSortPopDesc = document.getElementById("sortPopDesc");
 
+// Récupère l'ID du select pour la région
+const regionFilter = document.getElementById("regionFilter");
+
 // Variables globales
 //allCountries Stockera tous les pays récupérés de l'API
 var allcountries = [];
-
-//displayLimit  Nombre de pays à afficher initialement
 var displayLimit = 12;
-
 var sortMethod = "";
+
+// Variable pour stocker la région choisie
+var selectedRegion = "";
+
+// Variable pour stocker le nom d'un pays qu'on aura rechercher
+var searchTerm = "";
 
 // Fonction pour récupérer les données de l'API
 async function fetchCountries() {
@@ -57,66 +63,58 @@ function formatNumber(num) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-// Fonction de recherche
+// Fonction pour rechercher un pays
 function searchCountries() {
-  const searchTerm = searchInput.value.toLowerCase(); // j'utilise la fonction toLowerCase() pour tout mettre en minuscule pour comparer
-
-  // filtrer les pays selon le texte tapé
-  const filteredCountries = allcountries.filter((country) => {
-    const countryName = country.translations.fra.common.toLowerCase();
-    return countryName.includes(searchTerm);
-  });
-
-  // Afficher les pays filtrés
-  displayCountries(filteredCountries);
+  searchTerm = searchInput.value.toLowerCase();
+  displayCountries();
 }
 
 // Fonction pour afficher les pays
-function displayCountries(countries = allcountries) {
-  // ÉTAPE 1: Videz le conteneur countriesContainer avant d'ajouter de nouveaux pays
+function displayCountries() {
+  // Vider le conteneur countriesContainer avant de réafficher
   countriesContainer.innerHTML = "";
 
-  // ÉTAPE 2: Limitez le nombre de pays à afficher avec slice
-  let limitedCountries = [...allcountries];
+  // Limitez le nombre de pays à afficher avec slice
+  let filteredCountries = [...allcountries];
 
-  limitedCountries = countries.slice(0, displayLimit);
+  // Filtrer par texte rechercher
+  if (searchTerm !== "") {
+    filteredCountries = filteredCountries.filter((country) => {
+      const countryName = country.translations.fra.common.toLowerCase();
+      return countryName.includes(searchTerm);
+    });
+  }
+
+  // Filtrer par région
+  if (selectedRegion !== "") {
+    filteredCountries = filteredCountries.filter((country) => {
+      return country.region == selectedRegion;
+    });
+  }
 
   // Tri en fonction de sortMethod
   if (sortMethod == "az") {
-    limitedCountries.sort((a, b) => {
-      const paysA = a.translations.fra.common.toLowerCase();
-      const paysB = b.translations.fra.common.toLowerCase();
-      return paysA.localeCompare(paysB);
+    filteredCountries.sort((a, b) => {
+      return a.translations.fra.common.localeCompare(b.translations.fra.common);
     });
   } else if (sortMethod == "za") {
-    limitedCountries.sort((a, b) => {
-      const paysA = a.translations.fra.common.toLowerCase();
-      const paysB = b.translations.fra.common.toLowerCase();
-      return paysB.localeCompare(paysA);
+    filteredCountries.sort((a, b) => {
+      return b.translations.fra.common.localeCompare(a.translations.fra.common);
     });
   } else if (sortMethod == "popAsc") {
-    limitedCountries.sort((a, b) => {
+    filteredCountries.sort((a, b) => {
       return a.population - b.population;
     });
   } else if (sortMethod == "popDesc") {
-    limitedCountries.sort((a, b) => {
+    filteredCountries.sort((a, b) => {
       return b.population - a.population;
     });
   }
 
-  // limitedCountries.sort((a, b) => {
-  //   if (sortMethod == "az") {
-  //     return a.translations.fra.common.localeCompare(b.translations.fra.common);
-  //   } else if (sortMethod == "za") {
-  //     return b.translations.fra.common.localeCompare(a.translations.fra.common);
-  //   } else if (sortMethod == "popAsc") {
-  //     return a.population - b.population;
-  //   } else if (sortMethod == "popDesc") {
-  //     return b.population - a.population;
-  //   }
-  // });
+  // Limiter le nombre de pays à afficher (slice)
+  const limitedCountries = filteredCountries.slice(0, displayLimit);
 
-  // ÉTAPE 3: Pour chaque (foreach) pays dans limitedCountries, créez une carte
+  // Afficher les cartes
   limitedCountries.map((country) => {
     const drapeau = country.flags.png;
     const nomPays = country.translations.fra.common;
@@ -124,31 +122,22 @@ function displayCountries(countries = allcountries) {
     const capitale = country.capital ? country.capital[0] : "Capitale inconnue";
     const region = country.region;
 
-    // ÉTAPE 4: Ajoutez le HTML interne de la carte avec les informations du pays
-    // Utilisez les propriétés de l'objet country:
-    // - country.flags.png pour l'URL du drapeau
-    // - country.name.common pour le nom du pays
-    // - country.capital[0] pour la capitale (attention, vérifiez si elle existe)
-    // - country.population pour la population (utilisez formatNumber)
-    // - country.region pour la région/continent
     const countryCard = `
-        <div class="country-card">
-          <div class="flag-container">
-            <img src="${drapeau}" alt="Drapeau de ${nomPays}">
-          </div>
-          <div class="country-info">
-            <h2>${nomPays}</h2>
-            <p><strong>Capitale:</strong> ${capitale}</p>
-            <p><strong>Population:</strong> ${formatNumber(nbPopulation)}</p>
-            <p><strong>Région:</strong> ${region}</p>
-          </div>
+      <div class="country-card">
+        <div class="flag-container">
+          <img src="${drapeau}" alt="Drapeau de ${nomPays}">
         </div>
-      `;
+        <div class="country-info">
+          <h2>${nomPays}</h2>
+          <p><strong>Capitale:</strong> ${capitale}</p>
+          <p><strong>Population:</strong> ${formatNumber(nbPopulation)}</p>
+          <p><strong>Région:</strong> ${region}</p>
+        </div>
+      </div>
+    `;
 
-    // ÉTAPE 5: Ajoutez la carte countryCard au innerhtml du conteneur
+    // Ajouter la carte countryCard au innerHTML du conteneur
     countriesContainer.innerHTML += countryCard;
-
-    // ÉTAPE 6 : Fin du foreach
   });
 }
 
@@ -193,5 +182,13 @@ btnSortPopAsc.addEventListener("click", () => {
 
 btnSortPopDesc.addEventListener("click", () => {
   sortMethod = "popDesc";
+  displayCountries();
+});
+
+//////////////////
+// Pour le choix de la région choisie
+/////////////////
+regionFilter.addEventListener("change", () => {
+  selectedRegion = regionFilter.value;
   displayCountries();
 });
