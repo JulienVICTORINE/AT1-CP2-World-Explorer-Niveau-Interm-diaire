@@ -6,12 +6,20 @@ const countValue = document.getElementById("countValue");
 // Récupère l'ID de la barre de recherche
 const searchInput = document.getElementById("searchInput");
 
+// Récupère l'ID du bouton sort pour le tri alphabétique
+const btnSortNameAsc = document.getElementById("sortNameAsc");
+const btnSortNameDesc = document.getElementById("sortNameDesc");
+const btnSortPopAsc = document.getElementById("sortPopAsc");
+const btnSortPopDesc = document.getElementById("sortPopDesc");
+
 // Variables globales
 //allCountries Stockera tous les pays récupérés de l'API
 var allcountries = [];
 
 //displayLimit  Nombre de pays à afficher initialement
 var displayLimit = 12;
+
+var sortMethod = "";
 
 // Fonction pour récupérer les données de l'API
 async function fetchCountries() {
@@ -63,16 +71,6 @@ function searchCountries() {
   displayCountries(filteredCountries);
 }
 
-//Variable pour traduire la région
-const regionTranslations = {
-  Africa: "Afrique",
-  Americas: "Amériques",
-  Asia: "Asie",
-  Europe: "Europe",
-  Oceania: "Océanie",
-  Antarctic: "Antarctique",
-};
-
 // Fonction pour afficher les pays
 function displayCountries(countries = allcountries) {
   // ÉTAPE 1: Videz le conteneur countriesContainer avant d'ajouter de nouveaux pays
@@ -83,14 +81,48 @@ function displayCountries(countries = allcountries) {
 
   limitedCountries = countries.slice(0, displayLimit);
 
+  // Tri en fonction de sortMethod
+  if (sortMethod == "az") {
+    limitedCountries.sort((a, b) => {
+      const paysA = a.translations.fra.common.toLowerCase();
+      const paysB = b.translations.fra.common.toLowerCase();
+      return paysA.localeCompare(paysB);
+    });
+  } else if (sortMethod == "za") {
+    limitedCountries.sort((a, b) => {
+      const paysA = a.translations.fra.common.toLowerCase();
+      const paysB = b.translations.fra.common.toLowerCase();
+      return paysB.localeCompare(paysA);
+    });
+  } else if (sortMethod == "popAsc") {
+    limitedCountries.sort((a, b) => {
+      return a.population - b.population;
+    });
+  } else if (sortMethod == "popDesc") {
+    limitedCountries.sort((a, b) => {
+      return b.population - a.population;
+    });
+  }
+
+  // limitedCountries.sort((a, b) => {
+  //   if (sortMethod == "az") {
+  //     return a.translations.fra.common.localeCompare(b.translations.fra.common);
+  //   } else if (sortMethod == "za") {
+  //     return b.translations.fra.common.localeCompare(a.translations.fra.common);
+  //   } else if (sortMethod == "popAsc") {
+  //     return a.population - b.population;
+  //   } else if (sortMethod == "popDesc") {
+  //     return b.population - a.population;
+  //   }
+  // });
+
   // ÉTAPE 3: Pour chaque (foreach) pays dans limitedCountries, créez une carte
   limitedCountries.map((country) => {
-    const drapeau = country.flags?.png || "";
-    const nomPays =
-      country.translations?.fra?.common || country.name?.common || "Inconnu";
-    const nbPopulation = country.population || 0;
+    const drapeau = country.flags.png;
+    const nomPays = country.translations.fra.common;
+    const nbPopulation = country.population;
     const capitale = country.capital ? country.capital[0] : "Capitale inconnue";
-    const region = regionTranslations[country.region] || "Région inconnue";
+    const region = country.region;
 
     // ÉTAPE 4: Ajoutez le HTML interne de la carte avec les informations du pays
     // Utilisez les propriétés de l'objet country:
@@ -140,3 +172,26 @@ fetchCountries();
 // Pour rechercher un pays
 //////////////////
 searchInput?.addEventListener("input", searchCountries);
+
+/////////////////
+// Pour le tri alphabétique  (A-Z et Z-A)
+////////////////
+btnSortNameAsc.addEventListener("click", () => {
+  sortMethod = "az";
+  displayCountries();
+});
+
+btnSortNameDesc.addEventListener("click", () => {
+  sortMethod = "za";
+  displayCountries();
+});
+
+btnSortPopAsc.addEventListener("click", () => {
+  sortMethod = "popAsc";
+  displayCountries();
+});
+
+btnSortPopDesc.addEventListener("click", () => {
+  sortMethod = "popDesc";
+  displayCountries();
+});
